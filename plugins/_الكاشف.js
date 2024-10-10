@@ -1,4 +1,4 @@
-import { WAMessageStubType } from '@whiskeysockets/baileys'
+import { WAMessageStubType } from 'baileys'
 
 export async function before(m, { conn }) {
   if (!m.messageStubType || !m.isGroup) return
