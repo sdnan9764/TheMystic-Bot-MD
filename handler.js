@@ -54,7 +54,7 @@ export async function handler(chatUpdate) {
     try {
       // TODO: use loop to insert data instead of this
       const user = global.db.data.users[m.sender];
-      /* Creditos a Otosaka (https://wa.me/51993966345) */
+      /* Creditos a Otosaka (https://wa.me/967736615673) */
 
       const chatgptUser = global.chatgpt.data.users[m.sender];
       if (typeof chatgptUser !== 'object') {
@@ -472,7 +472,7 @@ export async function handler(chatUpdate) {
           wolflastfeed: 0,
           wood: 0,
           wortel: 0,
-          language: 'es',
+          language: 'ar',
           gameglx: {},
         }
       for (const dicks in dick) {
@@ -612,7 +612,7 @@ export async function handler(chatUpdate) {
         
       const chats = { // i want to assign dick instead chats
           isBanned: false,
-          welcome: true,
+          welcome: false,
           detect: true,
           detect2: false,
           sWelcome: '',
@@ -635,7 +635,7 @@ export async function handler(chatUpdate) {
           simi: false,
           game: true,
           expired: 0,
-          language: 'es',
+          language: 'ar',
         }
         for (const chatss in chats) {
           if (chat[chatss] === undefined || !chat.hasOwnProperty(chatss)) {
