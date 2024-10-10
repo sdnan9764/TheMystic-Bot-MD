@@ -1,7 +1,7 @@
 import axios from "axios";
 
 let handler = async(m, { conn, usedPrefix, command, text }) => {
-	if (!text) return m.reply(`*Masukkan pesan!*\nContoh: ${ usedPrefix + command } Apa itu AI Gemini?`);
+	if (!text) return m.reply(`*مرحبا كيف يمكنني مساعدتك اليوم!*\nContoh: ${ usedPrefix + command } Apa itu AI Gemini?`);
 	await conn.sendMessage(m.chat, { react: { text: `⏱️`, key: m.key } });
 	try {
 		const opsi = {
@@ -30,7 +30,7 @@ let handler = async(m, { conn, usedPrefix, command, text }) => {
 
 handler.help = ["geminipro"];
 handler.tags = ["ai"];
-handler.command = /^(gemini|bard)$/i;
+handler.command = /^(gemini|بوت)$/i;
 
 export default handler;
 
