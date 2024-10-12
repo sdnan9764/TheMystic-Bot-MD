@@ -1,10 +1,10 @@
-import fetch from 'node-fetch';
+ import fetch from 'node-fetch';
 import axios from 'axios';
 import { youtubedl, youtubedlv2 } from '@bochilteam/scraper';
 import fs from "fs";
 import yts from 'yt-search';
-import ytmp33 from '../src/libraries/ytmp33.js';
-import ytmp44 from '../src/libraries/ytmp44.js';
+//import ytmp33 from '../src/libraries/ytmp33.js';
+//import ytmp44 from '../src/libraries/ytmp44.js';
 import ytdl from 'ytdl-core';
 
 let limit1 = 100;
@@ -14,17 +14,17 @@ let limit_a2 = 400;
 
 const handler = async (m, { conn, command, args, text, usedPrefix }) => {
   const datas = global;
-  const idioma = datas.db.data.users[m.sender].language;
-  const _translate = JSON.parse(fs.readFileSync(`./language/ar.json`));
+  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje;
+  const _translate = JSON.parse(fs.readFileSync(`./src/languages/ar.json`));
   const tradutor = _translate.plugins.descargas_play;
 
   if (!text) throw `${tradutor.texto1[0]} _${usedPrefix + command} ${tradutor.texto1[1]}`;
 
   const yt_play = await search(args.join(' '));
   let additionalText = '';
-  if (['شغل', 'play3', 'شغل2'].includes(command)) {
+  if (['شغل', 'play3', 'playdoc'].includes(command)) {
     additionalText = 'audio';
-  } else if (['فيديو', 'play4', 'فيديو2'].includes(command)) {
+  } else if (['play2', 'play4', 'playdoc2'].includes(command)) {
     additionalText = 'vídeo';
   }
 
@@ -34,8 +34,8 @@ const handler = async (m, { conn, command, args, text, usedPrefix }) => {
 
   conn.sendMessage(m.chat, { image: { url: yt_play[0].thumbnail }, caption: texto1 }, { quoted: m });
 
-  if (['شغل', 'play3', 'شغل2'].includes(command)) {
-    try {
+  if (['شغل', 'play3', 'playdoc'].includes(command)) {
+    /*try {
       const { status, resultados, error } = await ytmp33(yt_play[0].url);
       if (!status) throw new Error(error);
 
@@ -54,14 +54,14 @@ const handler = async (m, { conn, command, args, text, usedPrefix }) => {
         await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
         return;
       } else {
-        if (['شغل2', 'play3'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
+        if (['playdoc', 'play3'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
         await conn.sendMessage(m.chat, { audio: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
         return;
       }
     } catch (error) {
-      console.log('Fallo el 1: ' + error)
+      console.log('Fallo el 1: ' + error)*/
       try {
-        const audio = `${global.MyApiRestBaseUrl}/api/v1/ytmp3?url=${yt_play[0].url}&apikey=${global.MyApiRestApikey}`;
+        const audio = `${global.MyApiRestBaseUrl}/api/v2/ytmp3?url=${yt_play[0].url}&apikey=${global.MyApiRestApikey}`;
         const ttl = await yt_play[0].title;
         const buff_aud = await getBuffer(audio);
         const fileSizeInBytes = buff_aud.byteLength;
@@ -77,7 +77,7 @@ const handler = async (m, { conn, command, args, text, usedPrefix }) => {
           await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
           return;
         } else {
-          if (['شغل2', 'play3'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
+          if (['playdoc', 'play3'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
           await conn.sendMessage(m.chat, { audio: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
           return;
         }
@@ -98,19 +98,19 @@ const handler = async (m, { conn, command, args, text, usedPrefix }) => {
            await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
            return;
          } else {
-           if (['شغل2', 'play3'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
+           if (['playdoc', 'play3'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
            await conn.sendMessage(m.chat, { audio: buff_aud, mimetype: 'audio/mpeg', fileName: ttl + `.mp3` }, { quoted: m });
            return;
          }
       } catch {  
         throw tradutor.texto4;
       }
-    }
+    //}
    }
   }
 
-  if (['فيديو', 'play4', 'فيديو2'].includes(command)) {
-    try {
+  if (['play2', 'play4', 'playdoc2'].includes(command)) {
+    /*try {
       const { status, resultados, error } = await ytmp44(yt_play[0].url);
       if (!status) throw new Error(error);
 
@@ -129,13 +129,13 @@ const handler = async (m, { conn, command, args, text, usedPrefix }) => {
         await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
         return;
       } else {
-        if (['فيديو2', 'play4'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
+        if (['playdoc2', 'play4'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
         await conn.sendMessage(m.chat, { video: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
         return;
       }
-    } catch (error) {
+    } catch (error) {*/
       try {
-        const video = `${global.MyApiRestBaseUrl}/api/v1/ytmp4?url=${yt_play[0].url}&apikey=${global.MyApiRestApikey}`;
+        const video = `${global.MyApiRestBaseUrl}/api/v2/ytmp4?url=${yt_play[0].url}&apikey=${global.MyApiRestApikey}`;
         const ttl2 = await yt_play[0].title;
         const buff_vid = await getBuffer(video);
         const fileSizeInBytes2 = buff_vid.byteLength;
@@ -151,7 +151,7 @@ const handler = async (m, { conn, command, args, text, usedPrefix }) => {
           await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
           return;
         } else {
-          if (['فيديو2', 'play4'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
+          if (['playdoc2', 'play4'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
           await conn.sendMessage(m.chat, { video: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
           return;
         }
@@ -172,19 +172,19 @@ const handler = async (m, { conn, command, args, text, usedPrefix }) => {
            await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
            return;
          } else {
-           if (['فيديو2', 'play4'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
+           if (['playdoc2', 'play4'].includes(command)) return await conn.sendMessage(m.chat, { document: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
            await conn.sendMessage(m.chat, { video: buff_vid, mimetype: 'video/mp4', fileName: ttl2 + `.mp4` }, { quoted: m });
            return;
          }
       } catch {          
         throw tradutor.texto6;
       }
-    }
+  //  }
    }
   }
 };
 
-handler.command = /^(شغل|فيديو|play3|play4|شغل2|فيديو2)$/i;
+handler.command = /^(شغل|play2|play3|play4|playdoc|playdoc2)$/i;
 export default handler;
 
 async function search(query, options = {}) {
