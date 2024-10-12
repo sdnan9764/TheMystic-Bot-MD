@@ -1,61 +1,64 @@
-import fg from "api-dylux"
-import {
-    youtubedl,
-    youtubedlv2
-} from "@bochilteam/scraper"
-let limit = 80000
+import axios from 'axios';
+import ffmpeg from 'fluent-ffmpeg';
 
-export async function before(m) {
-const regex = /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}$/;
-const matches = (m.text.trim()).match(regex);
-const spas = "                ";
-if (!matches) return false;
-await m.reply(wait);
+const TikWM = async (url) => {
+  try {
+    const response = await axios.post('https://www.tikwm.com/api/', null, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'User-Agent': 'Postify/1.0.0',
+      },
+      params: {
+        url: url,
+        count: 12,
+        cursor: 0,
+        web: 1,
+        hd: 1
+      }
+    });
 
-    try {
-                let q = "360p"
-        let v = matches[0]
-        const yt = await youtubedl(v).catch(async () => await youtubedlv2(v))
-        const dl_url = await yt.video[q].download()
-        const title = await yt.title
-        const size = await yt.video[q].fileSizeH
+    const data = response.data.data;
+    if (!data) throw new Error('Gak ada response dari API nya...');
 
+    let images = data.images && Array.isArray(data.images) ? data.images : [];
+    if (!images.length) {
+      return response.data;
+    }
+    
+    if (data.otherImages) images.push(...data.otherImages);
 
-        if (size.split("MB")[0] >= limit) return m.reply(` ≡  *التحميل من يوتوب*\n\n▢ *⚖️Size* : ${size}\n▢ *🎞️الجودة* : ${q}\n\n▢ _يتجاوز الملف حد التنزيل_ *+${limit} MB*`)
-        let captvid = `
- ≡  *التحميل من اليوتوب*
+    const audioLink = data.music_info.play;
+    const title = data.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const output = `${title}.mp4`;
 
-▢ *📌* : ${title}
-▢ *📟* : mp4
-▢ *🎞️* : ${q}
-▢ *⚖️* : ${size}
-`.trim()
-let dls = "تم تنزيل المقطع بنجاح"
-let doc = {
-                video: {
-                    url: dl_url
-                },
-                mimetype: "video/mp4",
-                caption: captvid,
-                contextInfo: {
-                    externalAdReply: {
-                        showAdAttribution: true,
-                        mediaType: 2,
-                        mediaUrl: v,
-                        title: title,
-                        body: dls,
-                        sourceUrl: v,
-                        thumbnail: await (await this.getFile(yt.thumbnail)).data
-                    }
-                }
-            }
+    const command = ffmpeg();
+    images.forEach(image => command.input(image));
+    command.input(audioLink);
 
-            await this.sendMessage(m.chat, doc, {
-                quoted: m
-            })
-            } catch (e) {
-                await m.reply( error )
-            }
+    const filterComplex = images.map((_, idx) => `[${idx}:v]format=rgb24,loop=999:1,setpts=N/FRAME_RATE/TB[v${idx}];`).join('') + 
+    images.map((_, idx) => `[v${idx}]`).join('') + 
+    `concat=n=${images.length}:v=1:a=0[vout]`;
 
-}
-export const disabled = false
+    command
+      .complexFilter(filterComplex)
+      .outputOptions([
+        '-map', '[vout]',
+        '-map', `${images.length}:a`,
+        '-c:v', 'libx264',
+        '-preset', 'fast',
+        '-shortest',
+        '-pix_fmt', 'yuv420p'
+      ])
+      .audioCodec('aac')
+      .on('end', () => console.log('Video Slideshow Tiktok berhasil di render..'))
+      .on('error', err => console.error('Proses Render Video Slideshow gagal :', err))
+      .save(output);
+    return 'Render Video Slideshow Tiktok sedang di proses....'
+  } catch (error) {
+    console.error(error);
+    return { error: error.message };
+  }
+};
+
+export { TikWM };
