@@ -1,68 +1,100 @@
 import yts from 'yt-search';
 import axios from 'axios';
 
-const extractVid = (data) => {
-    const match = /(?:youtu\.be\/|youtube\.com(?:.*[?&]v=|.*\/))([^?&]+)/.exec(data);
+const api = [
+    'https://cobalt.api.timelessnesses.me',
+    'https://co.eepy.today',
+    'https://dl.khyernet.xyz'
+];
+
+const rApi = () => api[Math.floor(Math.random() * api.length)];
+
+const extractID = (url) => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:\S*?[?&]v=)|v\/|e\/|u\/\w+\/|embed\/|shorts\/)([\w-]{11})/);
     return match ? match[1] : null;
 };
 
-const info = async (id) => {
-    const { title, description, url, videoId, seconds, timestamp, views, genre, uploadDate, ago, image, thumbnail, author } = await yts({ videoId: id });
-    return { title, description, url, videoId, seconds, timestamp, views, genre, uploadDate, ago, image, thumbnail, author };
-};
-
-const downloadLinks = async (id) => {
-    const headers = {
-        Accept: "*/*",
-        Origin: "https://id-y2mate.com",
-        Referer: `https://id-y2mate.com/${id}`,
-        'User-Agent': 'Postify/1.0.0',
-        'X-Requested-With': 'XMLHttpRequest',
+const request = async (videoId, downloadMode, quality = 720, format = 'mp3') => {
+    const apiUrl = rApi();
+    const payload = {
+        url: `https://youtube.com/watch?v=${videoId}`,
+        downloadMode
     };
+    if (downloadMode === 'video') payload.videoQuality = quality;
+    if (downloadMode === 'audio') payload.audioFormat = format;
 
-    const response = await axios.post('https://id-y2mate.com/mates/analyzeV2/ajax', new URLSearchParams({
-        k_query: `https://youtube.com/watch?v=${id}`,
-        k_page: 'home',
-        q_auto: 0,
-    }), { headers });
+    const response = await axios.post(`${apiUrl}/`, payload, {
+        headers: {
+            accept: 'application/json',
+            'content-type': 'application/json',
+        }
+    });
 
-    if (!response.data || !response.data.links) throw new Error('Gak ada response dari api nya 😮‍💨 ');
+    if (response.status !== 200 || !response.data || response.data.status !== 'tunnel') {
+        throw new Error('Terjadi kesalahan saat mengambil data 😮‍💨');
+    }
+    return response.data.url;
+};
 
-    return Object.entries(response.data.links).reduce((acc, [format, links]) => {
-        acc[format] = Object.fromEntries(Object.values(links).map(option => [
-            option.q || option.f, 
-            async () => {
-                const res = await axios.post('https://id-y2mate.com/mates/convertV2/index', new URLSearchParams({ vid: id, k: option.k }), { headers });
-                if (res.data.status !== 'ok') throw new Error('Cukup tau aja yak.. error bree');
-                return { size: option.size, format: option.f, url: res.data.dlink };
+const CobaltClone = async (input, mode = 'search', options = {}) => {
+    try {
+        const terinput = input.trim();
+        if (!terinput) throw new Error('Gak usah bertele tele, tinggal masukin link youtube atau query yang mau dicari .. ');
+
+        if (mode === 'search') {
+            const searchResults = await yts(terinput);
+            const videos = searchResults.videos;
+
+            return {
+                type: 'search',
+                videos: videos.map(v => ({
+                    title: v.title,
+                    id: v.videoId,
+                    url: v.url,
+                    media: { thumbnail: v.thumbnail, image: v.image },
+                }))
+            };
+        } else {
+            const videoId = extractID(terinput);
+            if (!videoId) throw new Error('Link youtube nya gak valid...');
+
+            const videoData = await yts({ videoId: videoId });
+            console.log(videoData);
+            if (!videoData) {
+                throw new Error('Video nya gak ada btw 😊');
             }
-        ]));
-        return acc;
-    }, { mp3: {}, mp4: {} });
-};
 
-const search = async (query) => {
-    const videos = await yts(query).then(v => v.videos);
-    return videos.map(({ videoId, views, url, title, description, image, thumbnail, seconds, timestamp, ago, author }) => ({
-        title, id: videoId, url,
-        media: { thumbnail: thumbnail || "", image },
-        description, duration: { seconds, timestamp }, published: ago, views, author
-    }));
-};
+            const video = videoData;
+            console.log(video);
+            const { title, description, thumbnail, image, seconds, views, author, url } = video;
 
-const YTMate = async (data) => {
-    if (!data.trim()) throw new Error('Gausah bertele tele, tinggal masukin aja link youtube atau query yg mau dicari...');
-    const isLink = /youtu(\.)?be/.test(data);
-    if (isLink) {
-        const id = extractVid(data);
-        if (!id) throw new Error('Error ceunah bree, ID nya gak adaa');
-        const videoInfo = await info(id);
-        const downloadLinks = await downloadLinks(id);
-        return { type: 'download', download: { ...videoInfo, dl: downloadLinks } };
-    } else {
-        const videos = await search(data);
-        return { type: 'search', query: data, total: videos.length, videos };
+            let download = {
+                title,
+                description,
+                url,
+                media: { thumbnail, image },
+                duration: seconds,
+                views,
+                author
+            };
+
+            if (mode === 'video') {
+                const videoUrl = await request(videoId, 'video', options.quality || 720);
+                download.videoUrl = videoUrl;
+            } else if (mode === 'audio') {
+                const audioUrl = await request(videoId, 'audio', '1440p', options.format || 'mp3');
+                download.audioUrl = audioUrl;
+            }
+
+            return {
+                type: 'download',
+                download,
+            };
+        }
+    } catch (err) {
+        console.error(err.message);
+        throw err;
     }
 };
 
-export { YTMate };
+export { CobaltClone };
