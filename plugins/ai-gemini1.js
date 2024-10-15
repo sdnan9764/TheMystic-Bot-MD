@@ -1,5 +1,3 @@
-
-
 import axios from 'axios';
 import fs from 'fs/promises';
 
@@ -161,7 +159,7 @@ handler.before = async (m, { conn, command }) => {
 };
 
 // Menetapkan command dan tag untuk handler
-handler.help = ['gemini'];
+handler.help = ['gemini1'];
 handler.tags = ['ai'];
 handler.command = /^(gemini1)$/i;
 
