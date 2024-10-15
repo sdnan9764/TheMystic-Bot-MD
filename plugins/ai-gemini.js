@@ -30,7 +30,7 @@ let handler = async(m, { conn, usedPrefix, command, text }) => {
 
 handler.help = ["geminipro"];
 handler.tags = ["ai"];
-handler.command = /^(gemini|بوت)$/i;
+handler.command = /^(gemini)$/i;
 
 export default handler;
 
