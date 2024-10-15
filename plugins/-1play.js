@@ -1,5 +1,5 @@
 import yts from 'yt-search';
-const { proto, generateWAMessageFromContent } = (await import('@whiskeysockets/baileys')).default;
+const { proto, generateWAMessageFromContent } = (await import('baileys')).default;
 
 // Handler untuk pencarian YouTube dengan ViewOnce Messages
 let handler = async (m, { conn, text, usedPrefix }) => {
