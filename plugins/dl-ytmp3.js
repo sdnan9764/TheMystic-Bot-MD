@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import yts from 'yt-search';
 
@@ -27,14 +26,14 @@ const downloadLinks = async (id) => {
         q_auto: 0,
     }), { headers });
 
-    if (!response.data || !response.data.links) throw new Error('Gak ada response dari api nya 😮‍💨 ');
+    if (!response.data || !response.data.links) throw new Error('لم يتم الحصول على رد من الـ API 😮‍💨 ');
 
     return Object.entries(response.data.links).reduce((acc, [format, links]) => {
         acc[format] = Object.fromEntries(Object.values(links).map(option => [
             option.q || option.f, 
             async () => {
                 const res = await axios.post('https://id-y2mate.com/mates/convertV2/index', new URLSearchParams({ vid: id, k: option.k }), { headers });
-                if (res.data.status !== 'ok') throw new Error('Cukup tau aja yak.. error bree');
+                if (res.data.status !== 'ok') throw new Error('خطأ غير متوقع...');
                 return { size: option.size, format: option.f, url: res.data.dlink };
             }
         ]));
@@ -53,38 +52,38 @@ const search = async (query) => {
 
 const handler = async (m, { conn, text, usedPrefix, command }) => {
     if (!text) {
-        throw (`*Contoh Penggunaan:* ${usedPrefix + command} https://www.youtube.com/watch?v=example atau cari dengan judul video.`);
+        throw (`*مثال للاستخدام:* ${usedPrefix + command} https://www.youtube.com/watch?v=example أو البحث باستخدام عنوان الفيديو.`);
     }
 
-    m.reply("_☔Tunggu sebentar, sedang memproses..._");
+    m.reply("_☔ يرجى الانتظار قليلاً، يتم المعالجة..._");
 
     try {
         const isLink = /youtu(\.)?be/.test(text);
         
         if (isLink) {
             const id = extractVid(text);
-            if (!id) throw new Error('Error, ID video tidak ditemukan.');
-            
-            // Fetch video info
+            if (!id) throw new Error('خطأ، لم يتم العثور على معرف الفيديو.');
+
+            // الحصول على معلومات الفيديو
             const videoInfo = await info(id);
             const downloadLink = await downloadLinks(id);
 
             const { title, author, thumbnail, views, description, uploadDate } = videoInfo;
 
-            // Fetch MP3 download link
+            // الحصول على رابط تحميل MP3
             const mp3DownloadFunc = downloadLink.mp3['128kbps'];
             const mp3Data = await mp3DownloadFunc();
             const mp3Url = mp3Data.url;
 
-            // Kirim informasi mengenai audio sebelum mengirim MP3
-            const infoMessage = `*🎧 Info Audio YouTube*\n\n` +
-                `*Judul:* ${title}\n` +
-                `*Penulis:* ${author.name}\n` +
-                `*Deskripsi:* ${description}\n` +
-                `*Tanggal Upload:* ${uploadDate}\n` +
-                `*Views:* ${views}\n` +
-                `*Link Video:* ${text}\n\n` +
-                `_Audionya segera dikirim..._`;
+            // إرسال معلومات الفيديو قبل إرسال MP3
+            const infoMessage = `*🎧 معلومات الصوت من YouTube*\n\n` +
+                `*العنوان:* ${title}\n` +
+                `*المؤلف:* ${author.name}\n` +
+                `*الوصف:* ${description}\n` +
+                `*تاريخ النشر:* ${uploadDate}\n` +
+                `*المشاهدات:* ${views}\n` +
+                `*رابط الفيديو:* ${text}\n\n` +
+                `_سيتم إرسال الصوت قريباً..._`;
 
             await conn.sendMessage(m.chat, { 
                 text: infoMessage, 
@@ -100,14 +99,14 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
                 }
             }, { quoted: m });
 
-            // Kirim MP3 setelah memberikan informasi
-            const audioMessage = `*🎧 Audio berhasil didownload*\n\n*Judul:* ${title}\n*Penulis:* ${author.name}`;
+            // إرسال MP3 بعد تقديم المعلومات
+            const audioMessage = `*🎧 تم تحميل الصوت بنجاح*\n\n*العنوان:* ${title}\n*المؤلف:* ${author.name}`;
 
             await conn.sendMessage(m.chat, { 
                 audio: { url: mp3Url }, 
                 mimetype: 'audio/mpeg', 
                 caption: audioMessage,
-                ptt: false, // Set true jika ingin mengirim sebagai voice note (opsional)
+                ptt: false, // قم بتعيين true إذا كنت ترغب في إرساله كرسالة صوتية (اختياري)
                 contextInfo: {
                     externalAdReply: {
                         title: `🎵 ${title}`,
@@ -121,26 +120,24 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
             }, { quoted: m });
         
         } else {
-            // Jika input berupa query pencarian, tampilkan hasil pencarian
+            // إذا كان المدخل عبارة عن استعلام بحث، يتم عرض نتائج البحث
             const videos = await search(text);
-            if (!videos.length) throw new Error('Tidak ditemukan video untuk query tersebut.');
+            if (!videos.length) throw new Error('لم يتم العثور على فيديوهات لهذه الكلمة.');
 
             let searchResults = videos.slice(0, 5).map((v, i) => 
-                `*${i + 1}.* ${v.title} (${v.duration.timestamp})\n    *Link:* ${v.url}\n    *Views:* ${v.views}\n`
+                `*${i + 1}.* ${v.title} (${v.duration.timestamp})\n    *رابط:* ${v.url}\n    *المشاهدات:* ${v.views}\n`
             ).join('\n\n');
 
-            m.reply(`*Hasil pencarian untuk query:* ${text}\n\n${searchResults}\n*Gunakan link dari hasil pencarian untuk mendownload MP3!*`);
+            m.reply(`*نتائج البحث عن:* ${text}\n\n${searchResults}\n*استخدم الرابط من نتائج البحث لتنزيل MP3!*`);
         }
 
     } catch (error) {
         console.error('Error:', error);
-        m.reply('*⚠️ Terjadi kesalahan saat memproses permintaan Anda.*');
+        m.reply('*⚠️ حدث خطأ أثناء معالجة طلبك.*');
     }
 };
 
 handler.help = ['ytmp3'];
 handler.command = ['ytmp3', 'ytaudio', 'ytmp3dl', 'yta'];
 handler.tags = ['downloader'];
-handler.limit = true;
-
 export default handler;
