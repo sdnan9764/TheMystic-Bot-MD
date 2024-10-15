@@ -1,5 +1,3 @@
-*[ ! ] PLUGINS AI* 
-
 import fetch from "node-fetch"
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -15,7 +13,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         if (res.status && res.result) {
             await m.reply(res.result)
         } else {
-            throw "`مرحبا كيف يمكنني مساعدتك اليوم`"
+            throw "مرحبا كيف يمكنني مساعدتك اليوم"
         }
     } catch (e) {
         throw e
