@@ -1,30 +1,30 @@
 import yts from 'yt-search';
 const { proto, generateWAMessageFromContent } = (await import('baileys')).default;
 
-// Handler untuk pencarian YouTube dengan ViewOnce Messages
+// معالجة البحث في YouTube باستخدام رسائل "عرض مرة واحدة"
 let handler = async (m, { conn, text, usedPrefix }) => {
-    if (!text) throw `✳️ Masukkan kata kunci untuk mencari video YouTube.`;
+    if (!text) throw `✳️ أدخل كلمة مفتاحية للبحث عن فيديوهات YouTube.`;
     
     let results = await yts(text);
     let videos = results.videos;
     
-    if (videos.length === 0) throw `🔍 Tidak ada hasil ditemukan untuk "${text}"`;
+    if (videos.length === 0) throw `🔍 لم يتم العثور على نتائج لكلمة "${text}"`;
 
     const data = {
-        title: "Hasil Pencarian YouTube",
+        title: "نتائج البحث في YouTube",
         sections: videos.slice(0, 10).map((v) => ({
             title: v.title,
             rows: [
                 {
-                    header: "🎶 MP3",
+                    header: "🎶تحميل كمقطع صوتي",
                     title: "",
-                    description: `▢ 📌 *Judul:* ${v.title}\n▢ ⌚ *Durasi:* ${v.timestamp}\n`,
+                    description: `▢ 📌 *العنوان:* ${v.title}\n▢ ⌚ *المدة:* ${v.timestamp}\n`,
                     id: `${usedPrefix}ytmp3 ${v.url}`
                 },
                 {
-                    header: "🎥 MP4",
+                    header: "🎥تحميل كمقطع فيديو",
                     title: "",
-                    description: `▢ 📌 *Judul:* ${v.title}\n▢ ⌚ *Durasi:* ${v.timestamp}\n`,
+                    description: `▢ 📌 *العنوان:* ${v.title}\n▢ ⌚ *المدة:* ${v.timestamp}\n`,
                     id: `${usedPrefix}ytmp4 ${v.url}`
                 }
             ]
@@ -36,14 +36,14 @@ let handler = async (m, { conn, text, usedPrefix }) => {
             message: {
                 interactiveMessage: proto.Message.InteractiveMessage.create({
                     body: proto.Message.InteractiveMessage.Body.create({
-                        text: `🎬 *YOU TUBE SEARCH*\n\nHasil pencarian dari: *${text}*`
+                        text: `🎬 *نتائج البحث في YouTube*\n\nنتائج البحث عن: *${text}*`
                     }),
                     footer: proto.Message.InteractiveMessage.Footer.create({
-                        text: '@Ling Xuan'
+                        text: '@967736615673'
                     }),
                     header: proto.Message.InteractiveMessage.Header.create({
                         title: '',
-                        subtitle: "Pilih video untuk opsi unduh",
+                        subtitle: "اختر الفيديو لتنزيل الخيارات",
                         hasMediaAttachment: false
                     }),
                     contextInfo: {
