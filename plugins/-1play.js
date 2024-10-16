@@ -70,6 +70,6 @@ let handler = async (m, { conn, text, usedPrefix }) => {
 
 handler.help = ['ytslist'];
 handler.tags = ['dl'];
-handler.command = ['شغل'];
+handler.command = ['بحث'];
 
 export default handler;
