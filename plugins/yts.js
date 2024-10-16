@@ -97,5 +97,5 @@ const handler = async (m, { conn, text, usedPrefix: prefijo }) => {
 };
 handler.help = ['ytsearch <texto>'];
 handler.tags = ['search'];
-handler.command = /^(بحث|yts|searchyt|تشغيل|تنزيل)$/i;
+handler.command = /^(يوتيوب|yts|searchyt|تشغيل|تنزيل)$/i;
 export default handler;
